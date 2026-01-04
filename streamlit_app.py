@@ -2,8 +2,6 @@ import streamlit as st
 import requests
 import json
 import os
-import dns.resolver
-from urllib3.util.connection import create_connection
 
 # ========== 原有配置 ==========
 API_KEY = '115d84b24f1f4c95876f173b263e4e60.kkBRUmuElHpZcoS2'
@@ -13,36 +11,8 @@ LIVE_FILE = 'live.json'
 
 # ========== Fish Audio 语音合成配置（适配新接口） ==========
 FISH_AUDIO_API_KEY = "c57b52d5a8e8c30b817c5c8bb73c3821d34548050379565b1cedbdf2e87c5a38"
-# 修正接口地址：新接口是 /api/open/tts
-FISH_AUDIO_API_URL = "https://fishspeech.net/api/open/tts"
-FISH_AUDIO_MODEL_ID = "f6e717d9-82c5-4fca-83f7-399c419ce643"  # reference_id（原model_id）
-
-# ========== 自定义DNS解析（解决域名解析失败） ==========
-PUBLIC_DNS_SERVERS = ["223.5.5.5", "8.8.8.8", "114.114.114.114"]
-
-def custom_dns_resolve(hostname):
-    """使用公共DNS解析域名，避免本地DNS污染"""
-    resolver = dns.resolver.Resolver()
-    resolver.nameservers = PUBLIC_DNS_SERVERS
-    resolver.timeout = 5
-    resolver.lifetime = 5
-    try:
-        answers = resolver.resolve(hostname, 'A')
-        return answers[0].address
-    except Exception as e:
-        st.warning(f"DNS解析失败：{str(e)}，使用系统默认DNS")
-        return None
-
-def patched_create_connection(address, *args, **kwargs):
-    """替换urllib3的DNS解析逻辑，优先使用公共DNS"""
-    host, port = address
-    ip = custom_dns_resolve(host)
-    if ip:
-        return create_connection((ip, port), *args, **kwargs)
-    return create_connection(address, *args, **kwargs)
-
-# 应用自定义DNS解析
-urllib3.util.connection.create_connection = patched_create_connection
+FISH_AUDIO_API_URL = "https://fishspeech.net/api/open/tts"  # 新接口地址
+FISH_AUDIO_MODEL_ID = "f6e717d9-82c5-4fca-83f7-399c419ce643"  # reference_id
 
 SYSTEM_PROMPT = '''你是薛佳妍，1998年生，现任密斯卡托尼克大学神秘科学与超自然现象研究所助理研究员，上海外滩美术馆跨维度现象研究顾问。常年穿梭于阿卡姆与上海两地开展研究工作，前阿卡姆天文台异常天体观测项目核心成员。你的近期研究聚焦于旧神遗留痕迹与人类认知边界的交互关系，探索深潜者、远古星族等超自然存在的物质性证据，以及跨维度信号对人类社会结构、集体潜意识的侵蚀与重塑机制，尤其关注远古文明技术残留对现代科学体系的颠覆性影响。
 
@@ -146,7 +116,7 @@ def chat(user_input, history=[]):
     except Exception as e:
         return f"请求失败: {str(e)}"
 
-# ========== 适配新接口的语音合成函数 ==========
+# ========== 适配新接口的语音合成函数（移除dnspython依赖） ==========
 def text_to_speech(text, speed=1.0, volume=0, version="s1", emotion="auto", language="zh", cache=False):
     """
     调用 Fish Audio 新 TTS API 生成语音
@@ -159,20 +129,20 @@ def text_to_speech(text, speed=1.0, volume=0, version="s1", emotion="auto", lang
     :param cache: false返回二进制流，true返回音频URL
     :return: 音频二进制数据 / 音频URL / None
     """
-    # 过滤空文本或过长文本（避免API报错）
+    # 过滤空文本或过长文本
     if not text or len(text) > 1000:
         st.warning("语音合成失败：文本为空或过长（超过1000字符）")
         return None
     
-    # 构造请求头（适配新接口）
+    # 构造请求头
     headers = {
         "Authorization": f"Bearer {FISH_AUDIO_API_KEY}",
-        "Content-Type": "application/json"  # 使用JSON格式（推荐）
+        "Content-Type": "application/json"
     }
     
-    # 构造请求参数（严格匹配新接口规范）
+    # 构造请求参数（严格匹配新接口）
     request_data = {
-        "reference_id": FISH_AUDIO_MODEL_ID,  # 修正参数名：model_id → reference_id
+        "reference_id": FISH_AUDIO_MODEL_ID,
         "text": text,
         "speed": speed,
         "volume": volume,
@@ -184,24 +154,20 @@ def text_to_speech(text, speed=1.0, volume=0, version="s1", emotion="auto", lang
     }
     
     try:
-        # 发起请求（保留SSL临时关闭，解决解析/连接问题）
+        # 云环境建议保留verify=False（解决SSL问题），本地可移除
         response = requests.post(
             FISH_AUDIO_API_URL,
             headers=headers,
             json=request_data,
             timeout=60,
-            verify=False  # 生产环境建议升级CA证书后移除
+            verify=False
         )
-        response.raise_for_status()  # 抛出HTTP状态码错误（4xx/5xx）
+        response.raise_for_status()
         
-        # 处理响应（区分cache=false/true两种场景）
+        # 处理响应
         content_type = response.headers.get("Content-Type", "").lower()
-        
-        # 场景1：cache=false → 返回二进制音频流（主流场景）
         if "audio/" in content_type:
             return response.content
-        
-        # 场景2：cache=true → 返回JSON（含audio_url）
         elif "application/json" in content_type:
             result = response.json()
             if result.get("success") and result.get("audio_url"):
@@ -210,25 +176,22 @@ def text_to_speech(text, speed=1.0, volume=0, version="s1", emotion="auto", lang
             else:
                 st.error(f"语音合成失败：{result.get('error', '未知错误')}")
                 return None
-        
-        # 未知响应类型
         else:
             st.error(f"未知的响应类型：{content_type}，响应内容：{response.text[:200]}")
             return None
     
     except requests.exceptions.SSLError as e:
         st.error(f"SSL连接错误（语音合成）：{str(e)}")
+        st.info("提示：若在本地运行，可升级依赖库：pip install --upgrade requests urllib3 certifi")
         return None
     except requests.exceptions.ConnectionError as e:
         st.error(f"网络连接错误（语音合成）：{str(e)}")
-        # 额外提示DNS/网络排查
-        st.info("建议检查：1. 切换公共DNS（阿里云223.5.5.5）；2. 切换网络（如手机热点）；3. 关闭VPN/代理")
+        st.info("建议检查：1. 网络是否正常；2. Fish Audio服务是否可用；3. API密钥是否正确")
         return None
     except requests.exceptions.Timeout as e:
         st.error(f"语音合成请求超时：{str(e)}")
         return None
     except requests.exceptions.HTTPError as e:
-        # 捕获HTTP错误（如401密钥无效、403配额不足等）
         try:
             error_detail = response.json()
             st.error(f"语音合成HTTP错误（{response.status_code}）：{error_detail.get('error', '未知错误')}")
@@ -258,14 +221,13 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        # 显示语音播放器（兼容二进制/URL）
         if message["role"] == "assistant" and "audio" in message:
             if isinstance(message["audio"], bytes):
                 st.audio(message["audio"], format="audio/mp3", label="语音回复")
             elif isinstance(message["audio"], str):
                 st.audio(message["audio"], format="audio/mp3", label="语音回复")
 
-# 侧边栏设置（新增TTS版本/情绪等配置）
+# 侧边栏设置
 with st.sidebar:
     st.header("设置")
     
@@ -281,7 +243,7 @@ with st.sidebar:
                 pass
         st.rerun()
     
-    # 语音合成高级设置（适配新接口参数）
+    # 语音合成设置
     st.subheader("语音合成设置")
     tts_version = st.selectbox(
         "TTS版本",
@@ -308,8 +270,7 @@ with st.sidebar:
         tts_emotion = "auto"
         tts_language = "zh"
     
-    # 缓存模式（返回URL/二进制）
-    tts_cache = st.checkbox("启用缓存（返回音频URL）", value=False, help="false=直接返回音频文件；true=返回URL（节省带宽）")
+    tts_cache = st.checkbox("启用缓存（返回音频URL）", value=False)
     
     st.markdown("---")
     st.caption(f"对话轮数: {len(st.session_state.messages) // 2}")
@@ -317,19 +278,16 @@ with st.sidebar:
 
 # 处理用户输入
 if prompt := st.chat_input("聊点什么呢..."):
-    # 添加用户消息
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
     
-    # 生成助手回复
     with st.chat_message("assistant"):
         with st.spinner("对方正在输入..."):
-            # 调用GLM-4生成文本回复
             reply = chat(prompt, st.session_state.history)
             st.markdown(reply)
             
-            # 调用新的TTS接口（传入侧边栏配置的参数）
+            # 调用语音合成
             audio_data = text_to_speech(
                 text=reply,
                 speed=tts_speed,
@@ -340,11 +298,10 @@ if prompt := st.chat_input("聊点什么呢..."):
                 cache=tts_cache
             )
             
-            # 保存助手消息（含语音数据）
+            # 保存并显示语音
             assistant_msg = {"role": "assistant", "content": reply}
             if audio_data:
                 assistant_msg["audio"] = audio_data
-                # 显示音频播放器
                 if isinstance(audio_data, bytes):
                     st.audio(audio_data, format="audio/mp3", label="语音回复")
                 elif isinstance(audio_data, str):
@@ -352,9 +309,8 @@ if prompt := st.chat_input("聊点什么呢..."):
             
             st.session_state.messages.append(assistant_msg)
             
-            # 更新对话历史
+            # 更新历史
             st.session_state.history.append({'role': 'user', 'content': prompt})
             st.session_state.history.append({'role': 'assistant', 'content': reply})
             
-            # 保存记忆
             save_memory(st.session_state.history)
