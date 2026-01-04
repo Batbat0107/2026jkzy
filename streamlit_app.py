@@ -206,7 +206,7 @@ def text_to_speech(text, speed=1.0, volume=0, version="s1", emotion="auto", lang
 # ========== Streamlit 界面 ==========
 st.set_page_config(
     page_title="薛佳妍",
-    
+    st.markdown("<div style='color:#6c757d; font-size:14px; margin-top:-6px;'>简介上写着：现任密斯卡托尼克大学神秘科学与超自然现象研究所助理研究员，上海外滩美术馆跨维度现象研究顾问。</div>", unsafe_allow_html=True)
     layout="wide"
 )
 
