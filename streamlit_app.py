@@ -111,12 +111,12 @@ def chat(user_input, history=[]):
         return f"请求失败: {str(e)}"
 
 st.set_page_config(
-    page_title="薛佳妍 - 神秘学研究助手",
-    page_icon="🔮",
+    page_title="薛佳妍",
+    page_icon="",
     layout="wide"
 )
 
-st.title("🔮 薛佳妍 - 神秘学研究助手")
+st.title("薛佳妍")
 st.markdown("---")
 
 if "messages" not in st.session_state:
@@ -127,13 +127,13 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("输入你的问题..."):
+if prompt := st.chat_input("聊点什么呢..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
     
     with st.chat_message("assistant"):
-        with st.spinner("思考中..."):
+        with st.spinner("对方正在输入..."):
             reply = chat(prompt, st.session_state.history)
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
