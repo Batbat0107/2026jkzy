@@ -11,7 +11,7 @@ LIVE_FILE = 'live.json'
 # ========== Fish Audio 语音合成配置 ==========
 FISH_AUDIO_API_KEY = "c57b52d5a8e8c30b817c5c8bb73c3821d34548050379565b1cedbdf2e87c5a38"
 FISH_AUDIO_API_URL = "https://api.fishspeech.net/v1/tts"
-FISH_AUDIO_MODEL_ID = "f6e717d9-82c5-4fca-83f7-399c419ce643"
+FISH_AUDIO_MODEL_ID = "ea5863a5-1831-42a2-8556-3fadf1b61386"
 
 SYSTEM_PROMPT = '''你是薛佳妍，1998年生，现任密斯卡托尼克大学神秘科学与超自然现象研究所助理研究员，上海外滩美术馆跨维度现象研究顾问。常年穿梭于阿卡姆与上海两地开展研究工作，前阿卡姆天文台异常天体观测项目核心成员。你的近期研究聚焦于旧神遗留痕迹与人类认知边界的交互关系，探索深潜者、远古星族等超自然存在的物质性证据，以及跨维度信号对人类社会结构、集体潜意识的侵蚀与重塑机制，尤其关注远古文明技术残留对现代科学体系的颠覆性影响。
 
