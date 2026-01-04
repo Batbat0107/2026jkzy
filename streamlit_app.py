@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import json
 import os
+import datetime
 
 # ========== 原有配置 ==========
 API_KEY = '115d84b24f1f4c95876f173b263e4e60.kkBRUmuElHpZcoS2'
@@ -12,7 +13,7 @@ LIVE_FILE = 'live.json'
 # ========== Fish Audio 语音合成配置（适配新接口） ==========
 FISH_AUDIO_API_KEY = "c57b52d5a8e8c30b817c5c8bb73c3821d34548050379565b1cedbdf2e87c5a38"
 FISH_AUDIO_API_URL = "https://fishspeech.net/api/open/tts"  # 新接口地址
-FISH_AUDIO_MODEL_ID = "f6e717d9-82c5-4fca-83f7-399c419ce643"  # reference_id
+FISH_AUDIO_MODEL_ID = "ea5863a5-1831-42a2-8556-3fadf1b61386"  # reference_id
 
 SYSTEM_PROMPT = '''你是薛佳妍，1998年生，现任密斯卡托尼克大学神秘科学与超自然现象研究所助理研究员，上海外滩美术馆跨维度现象研究顾问。常年穿梭于阿卡姆与上海两地开展研究工作，前阿卡姆天文台异常天体观测项目核心成员。你的近期研究聚焦于旧神遗留痕迹与人类认知边界的交互关系，探索深潜者、远古星族等超自然存在的物质性证据，以及跨维度信号对人类社会结构、集体潜意识的侵蚀与重塑机制，尤其关注远古文明技术残留对现代科学体系的颠覆性影响。
 
@@ -205,11 +206,11 @@ def text_to_speech(text, speed=1.0, volume=0, version="s1", emotion="auto", lang
 # ========== Streamlit 界面 ==========
 st.set_page_config(
     page_title="薛佳妍",
-    page_icon="🔮",
+    
     layout="wide"
 )
 
-st.title("薛佳妍 🔮")
+st.title("薛佳妍")
 st.markdown("---")
 
 # 初始化会话状态
@@ -223,15 +224,17 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
         if message["role"] == "assistant" and "audio" in message:
             if isinstance(message["audio"], bytes):
-                st.audio(message["audio"], format="audio/mp3", label="语音回复")
+                st.audio(message["audio"], format="audio/mp3")
+                st.caption("语音回复")
             elif isinstance(message["audio"], str):
-                st.audio(message["audio"], format="audio/mp3", label="语音回复")
+                st.audio(message["audio"], format="audio/mp3")
+                st.caption("语音回复")
 
 # 侧边栏设置
 with st.sidebar:
     st.header("设置")
     
-    # 清除对话历史
+    # 清除对话历史（仅保留此项）
     if st.button("清除对话历史"):
         st.session_state.messages = []
         st.session_state.history = load_memory()
@@ -242,39 +245,14 @@ with st.sidebar:
             except:
                 pass
         st.rerun()
-    
-    # 语音合成设置
-    st.subheader("语音合成设置")
-    tts_version = st.selectbox(
-        "TTS版本",
-        options=["s1", "v1", "v2", "v3-turbo", "v3-hd"],
-        index=0,
-        help="s1=传统版本（推荐）；v3-hd=高清版（支持情绪）"
-    )
-    tts_speed = st.slider("语速", 0.5, 2.0, 1.0, 0.1)
-    tts_volume = st.slider("音量", -20, 20, 0, 1, help="范围-20（静音）~20（最大）")
-    
-    # V3版本专属配置
-    if "v3" in tts_version:
-        tts_emotion = st.selectbox(
-            "情绪（仅V3支持）",
-            options=["auto", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised", "fluent"],
-            index=1
-        )
-        tts_language = st.selectbox(
-            "语言增强（仅V3支持）",
-            options=["auto", "zh", "en"],
-            index=0
-        )
-    else:
-        tts_emotion = "auto"
-        tts_language = "zh"
-    
-    tts_cache = st.checkbox("启用缓存（返回音频URL）", value=False)
-    
-    st.markdown("---")
-    st.caption(f"对话轮数: {len(st.session_state.messages) // 2}")
-    st.caption("Powered by GLM-4 & Fish Audio")
+
+# 侧边栏已精简，设置默认的 TTS 变量以避免未定义错误
+tts_version = "s1"
+tts_speed = 1.0
+tts_volume = 0
+tts_emotion = "auto"
+tts_language = "zh"
+tts_cache = False
 
 # 处理用户输入
 if prompt := st.chat_input("聊点什么呢..."):
@@ -290,8 +268,8 @@ if prompt := st.chat_input("聊点什么呢..."):
             # 调用语音合成
             audio_data = text_to_speech(
                 text=reply,
-                speed=tts_speed,
-                volume=tts_volume,
+                speed=1.0,
+                volume=1.0,
                 version=tts_version,
                 emotion=tts_emotion,
                 language=tts_language,
@@ -303,9 +281,11 @@ if prompt := st.chat_input("聊点什么呢..."):
             if audio_data:
                 assistant_msg["audio"] = audio_data
                 if isinstance(audio_data, bytes):
-                    st.audio(audio_data, format="audio/mp3", label="语音回复")
+                    st.audio(audio_data, format="audio/mp3")
+                    st.caption("语音回复")
                 elif isinstance(audio_data, str):
-                    st.audio(audio_data, format="audio/mp3", label="语音回复")
+                    st.audio(audio_data, format="audio/mp3")
+                    st.caption("语音回复")
             
             st.session_state.messages.append(assistant_msg)
             
@@ -314,3 +294,5 @@ if prompt := st.chat_input("聊点什么呢..."):
             st.session_state.history.append({'role': 'assistant', 'content': reply})
             
             save_memory(st.session_state.history)
+
+
