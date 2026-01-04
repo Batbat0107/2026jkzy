@@ -243,10 +243,7 @@ with st.sidebar:
         st.session_state.history = load_memory()
         st.rerun()
 
-    # 语音合成参数调整（可选）
-    st.subheader("语音设置")
-    tts_speed = st.slider("语速", 0.5, 2.0, 1.0, 0.1)
-    tts_pitch = st.slider("音调", 0.5, 2.0, 1.0, 0.1)
+    
     
     st.markdown("---")
     st.caption(f"对话轮数: {len(st.session_state.messages) // 2}")
