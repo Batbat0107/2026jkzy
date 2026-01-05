@@ -57,4 +57,10 @@ JSON 格式
 
 - 当前演示基于字符驱动口型，无法完美反映真实语音的音素（phoneme）分布；若需要更精确的唇形同步，可接入 TTS 的音素输出或 WebAudio 分析。
 
+部署信息（由自动化部署）
+
+- 已在 Vercel 使用仓库 `Batbat0107/2026jkzy` 的 `web_chatbot` 目录创建项目并部署。
+- **部署 URL**：https://2026jkzy-l47ihu6m8-cbbs-projects-bc686e90.vercel.app
+- 已添加环境变量：`BIN_KEY`（已设为 Production，内容为你提供的 JSONBin key）。
+
 欢迎修改和 PR。
