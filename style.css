@@ -11,7 +11,8 @@ main{flex:1;display:flex;align-items:center;justify-content:center;position:rela
 #log{position:absolute;left:18px;bottom:36px;color:#cfe9ff;max-width:40%;font-size:13px}
 #log .item{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);margin-top:6px}
 footer{padding:10px 18px;text-align:center;color:#97b0d9}
-
+.note{color:#9fb6d7;font-size:13px;margin-top:6px;text-align:center}
+.note code{background:rgba(255,255,255,0.03);padding:2px 6px;border-radius:4px}
 /* 字幕气泡 */
 .bubble{position:absolute;left:50%;transform:translateX(-50%);padding:10px 14px;background:rgba(255,255,255,0.08);border-radius:18px;color:#eaf6ff;max-width:70%;text-align:center;font-weight:600}
 .bubble::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-8px;border-width:8px 8px 0 8px;border-style:solid;border-color:rgba(255,255,255,0.08) transparent transparent transparent}

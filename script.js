@@ -34,6 +34,7 @@ function setup(){
   const params = new URLSearchParams(window.location.search);
   const pBin = params.get('binUrl') || params.get('BIN_URL');
   if(pBin) binUrlEl.value(pBin);
+  else binUrlEl.value('https://api.jsonbin.io/v3/b/695b5bd043b1c97be919ec3d/latest'); // 默认示例私有 bin
   const pKey = params.get('apiKey') || params.get('BIN_KEY');
   if(pKey) apiKeyEl.value(pKey);
   if(params.get('auto') === '1') autoPlayEl.elt.checked = true;

@@ -22,6 +22,14 @@
 
 示例快速链：
 `https://your-site.vercel.app/?binUrl=https://api.jsonbin.io/v3/b/<BIN_ID>/latest&apiKey=<KEY>&auto=1`
+
+已上传的示例数据（私有）
+
+- `memory_chat.json` 已上传到 JSONBin（私有）。
+  - **Bin ID**：`695b5bd043b1c97be919ec3d`
+  - **API（latest）**：`https://api.jsonbin.io/v3/b/695b5bd043b1c97be919ec3d/latest`
+  - 访问此 bin 需要在请求头中加入 `X-Master-Key: <YOUR_API_KEY>`（上传时使用了你提供的 key）。
+
 JSON 格式
 
 支持以下几种结构（从响应中自动寻找数组）：
