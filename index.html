@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>泛光小球聊天机器人</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>泛光小球聊天机器人</h1>
+      <div class="controls">
+        <input id="binUrl" placeholder="在此粘贴 JSONBin 的 URL（或留空使用示例）" />
+        <input id="apiKey" placeholder="可选：JSONBin API Key（部署时请使用 Vercel Secret）" />
+        <button id="fetchBtn">取一条消息</button>
+        <label><input id="autoPlay" type="checkbox" /> 自动播放</label>
+      </div>
+    </header>
+
+    <main>
+      <div id="sketch-container"></div>
+      <div id="status">状态：等待</div>
+      <div id="log"></div>
+    </main>
+
+    <footer>
+      <small>消息来源：JSONBin（可配置）。口型由文字驱动，字幕在气泡显示于机器人头顶。</small>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

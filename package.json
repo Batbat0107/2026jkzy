@@ -1,0 +1,11 @@
+{
+  "name": "glow-orb-chatbot",
+  "version": "1.0.0",
+  "description": "p5.js Glow Orb Chatbot - text-driven mouth and subtitles fetched from JSONBin",
+  "scripts": {
+    "start": "serve -s ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
